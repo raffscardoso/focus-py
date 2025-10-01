@@ -86,17 +86,20 @@ def runtime(duration_seconds):
             print("Focus stopped.")
             break
         remaining_time = end_time - time.time()
+        time.sleep(1)
         print(f"Running for {timedelta(seconds=int(remaining_time))}", end="\r")
 
     print("\nFocus finished!")
 
 
 if __name__ == "__main__":
-    focus_duration_minute = 1
-    focus_duration_seconds = focus_duration_minute * 60
+    focus_duration_minute = input(
+        "Please enter the amount of time you want to focus (minutes): "
+    )
+    focus_duration_seconds = float(focus_duration_minute) * 60
 
     try:
-        # block_sites()
+        block_sites()
         runtime(focus_duration_seconds)
     finally:
         unblock_sites()
