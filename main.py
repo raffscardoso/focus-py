@@ -1,6 +1,10 @@
-import time
 import os
+import tty
+import threading
+import termios
+import sys
 import shutil
+import time
 from datetime import timedelta
 
 HOST_FILE_PATH = "/etc/hosts"
@@ -20,6 +24,19 @@ BLOCKED_SITES = [
     "www.x.com",
     "x.com",
 ]
+
+stop_signal = threading.Event()
+
+
+def keyboard_listener():
+    inicial_terminal_config = termios.tcgetattr(sys.stdin)
+
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        sys.stdin.read(1)
+        stop_signal.set()
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, inicial_terminal_config)
 
 
 def block_sites():
@@ -58,12 +75,18 @@ def unblock_sites():
 
 def runtime(duration_seconds):
     print(f"Starting time for {timedelta(seconds=duration_seconds)}.")
+    print("Press any key to stop.")
     end_time = time.time() + duration_seconds
+
+    listener_thread = threading.Thread(target=keyboard_listener, daemon=True)
+    listener_thread.start()
+
     while time.time() < end_time:
+        if stop_signal.is_set():
+            print("Focus stopped.")
+            break
         remaining_time = end_time - time.time()
         print(f"Running for {timedelta(seconds=int(remaining_time))}", end="\r")
-
-        time.sleep(1)
 
     print("\nFocus finished!")
 
@@ -73,7 +96,7 @@ if __name__ == "__main__":
     focus_duration_seconds = focus_duration_minute * 60
 
     try:
-        block_sites()
+        # block_sites()
         runtime(focus_duration_seconds)
     finally:
         unblock_sites()
