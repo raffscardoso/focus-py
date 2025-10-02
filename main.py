@@ -12,18 +12,24 @@ BACKUP_HOST_FILE_PATH = "/etc/hosts.backup"
 
 REDIRECT_IP = ["127.0.0.1", "::1"]
 
-BLOCKED_SITES = [
-    "www.youtube.com",
-    "youtube.com",
-    "www.reddit.com",
-    "reddit.com",
-    "www.twitter.com",
-    "twitter.com",
-    "www.instagram.com",
-    "instagram.com",
-    "www.x.com",
-    "x.com",
-]
+
+def get_sites_from_file(file_path="sites.txt"):
+    try:
+        with open(file_path, "r") as file:
+            sites_list = []
+            for line in file:
+                cleaned_line = line.strip()
+                # if cleaned_line is an empty string, the condition will be False
+                if cleaned_line:
+                    sites_list.append(cleaned_line)
+            return sites_list
+    except FileNotFoundError:
+        print(f"Warning: the file {file_path} was not found. No sites will be blocked.")
+        return []
+
+
+BLOCKED_SITES = get_sites_from_file()
+
 
 stop_signal = threading.Event()
 
@@ -74,7 +80,7 @@ def unblock_sites():
 
 
 def runtime(duration_seconds):
-    print(f"Starting time for {timedelta(seconds=duration_seconds)}.")
+    print(f"Starting focus timer for {timedelta(seconds=duration_seconds)}.")
     print("Press any key to stop.")
     end_time = time.time() + duration_seconds
 
